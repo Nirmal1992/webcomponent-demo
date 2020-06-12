@@ -1,0 +1,13 @@
+#launch-dialog {
+  background: #8848b3;
+  border-radius: 4px;
+  color: #fff;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 2em;
+  padding: 0.5rem 1rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  transform: translate(-50%, -50%);
+}

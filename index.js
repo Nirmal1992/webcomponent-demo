@@ -1,0 +1,235 @@
+'use strict';
+
+const newTemplate = document.createElement('template');
+
+newTemplate.innerHTML = `
+<style>
+.wrapper {
+  font-family: Helvetica, Arial;
+  opacity: 0;
+  transition: visibility 0s, opacity 0.25s ease-in;
+}
+.wrapper:not(.open) {
+  visibility: hidden;
+}
+.wrapper.open {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  opacity: 1;
+  visibility: visible;
+}
+.overlay {
+  background: linear-gradient(to right bottom, #fff, #000);
+  height: 100%;
+  opacity: 0.9;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+.dialog {
+  background: #ffffff;
+  max-width: 600px;
+  padding: 1rem;
+  position: fixed;
+  box-shadow: 10px 10px 20px 10px black;
+  border: 1px solid grey;
+}
+h1 {
+  margin-top: 0;
+}
+button {
+  all: unset;
+  cursor: pointer;
+  font-size: 1.25rem;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+button:focus {
+  border: 2px solid blue;
+}
+</style>
+<div class="wrapper">
+<div class="overlay"></div>
+<div
+  class="dialog"
+  role="dialog"
+  aria-labelledby="title"
+  aria-describedby="content"
+>
+  <button class="close" aria-label="Close">✖️</button>
+  <h1 id="title"><slot name="heading"></slot></h1>
+  <div id="content" class="content">
+    <slot></slot>
+  </div>
+</div>
+</div>
+`;
+
+class DialogModal extends HTMLElement {
+  static get observedAttributes() {
+    return ['open', 'template'];
+  }
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.close = this.close.bind(this);
+  }
+
+  attributeChangedCallback(attrName, oldValue, newValue) {
+    if (newValue !== oldValue) {
+      switch (attrName) {
+        /** Boolean attributes */
+        case 'open':
+          this[attrName] = this.hasAttribute(attrName);
+          break;
+        /** Value attributes */
+        case 'template':
+          this[attrName] = newValue;
+          break;
+      }
+    }
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  disconnectedCallback() {
+    this.shadowRoot
+      .querySelector('button')
+      .removeEventListener('click', this.close);
+  }
+
+  render() {
+    const { shadowRoot, template } = this;
+    const templateNode = document.getElementById(template);
+    if (template === 'newTemplate') {
+      const content = document.importNode(newTemplate.content, true);
+      shadowRoot.appendChild(content);
+    } else {
+      shadowRoot.innerHTML = `<style>
+        .wrapper {
+          opacity: 0;
+          transition: visibility 0s, opacity 0.25s ease-in;
+        }
+        .wrapper:not(.open) {
+          visibility: hidden;
+        }
+        .wrapper.open {
+          align-items: center;
+          display: flex;
+          justify-content: center;
+          height: 100vh;
+          position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+          opacity: 1;
+          visibility: visible;
+        }
+        .overlay {
+          background: rgba(0, 0, 0, 0.8);
+          height: 100%;
+          position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+          width: 100%;
+        }
+        .dialog {
+          background: #ffffff;
+          max-width: 600px;
+          padding: 1rem;
+          position: fixed;
+        }
+        button {
+          all: unset;
+          cursor: pointer;
+          font-size: 1.25rem;
+          position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+        button:focus {
+          border: 2px solid blue;
+        }
+      </style>
+      <div class="wrapper">
+      <div class="overlay"></div>
+        <div class="dialog" role="dialog" aria-labelledby="title" aria-describedby="content">
+          <button class="close" aria-label="Close">✖️</button>
+          <h1 id="title"><slot name="heading"></slot></h1>
+          <div id="content" class="content">
+            <slot></slot>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    shadowRoot.querySelector('button').addEventListener('click', this.close);
+  }
+
+  get open() {
+    return this.hasAttribute('open');
+  }
+
+  get template() {
+    return this.getAttribute('template');
+  }
+
+  set template(template) {
+    if (template) {
+      this.setAttribute('template', template);
+    } else {
+      this.removeAttribute('template');
+    }
+    this.render();
+  }
+
+  set open(isOpen) {
+    const { shadowRoot } = this;
+    shadowRoot.querySelector('.wrapper').classList.toggle('open', isOpen);
+    shadowRoot.querySelector('.wrapper').setAttribute('aria-hidden', !isOpen);
+    if (isOpen) {
+      this._wasFocused = document.activeElement;
+      this.setAttribute('open', '');
+      document.addEventListener('keydown', this._watchEscape);
+      shadowRoot.querySelector('button').focus();
+    } else {
+      this._wasFocused && this._wasFocused.focus && this._wasFocused.focus();
+      this.removeAttribute('open');
+      document.removeEventListener('keydown', this._watchEscape);
+      this.close();
+    }
+  }
+
+  close() {
+    if (this.open !== false) {
+      this.open = false;
+    }
+    const closeEvent = new CustomEvent('dialog-closed');
+    this.dispatchEvent(closeEvent);
+  }
+
+  _watchEscape(event) {
+    if (event.key === 'Escape') {
+      this.close();
+    }
+  }
+}
+
+customElements.define('dialog-modal', DialogModal);
+
+const button = document.getElementById('launch-dialog');
+button.addEventListener('click', () => {
+  document.querySelector('dialog-modal').open = true;
+});
