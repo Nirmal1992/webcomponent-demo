@@ -2,6 +2,8 @@
 
 node_modules
 
+dist/
+
 # Ignore files related to API keys
 .env
 
