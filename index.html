@@ -7,25 +7,29 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <dialog-modal template="newTemplate">
-      <h1 slot="heading">Hello world</h1>
-      <div>
-        <p>
-          Lorem ipsum dolor amet tilde bicycle rights affogato brooklyn.
-          Whatever lomo subway tile sriracha gastropub edison bulb shabby chic
-          tumeric meditation mustache raw denim. lorem
-        </p>
-
-        <p>
-          reegan ugh bespoke you probably haven't heard of them godard crucifix
-          pabst. Selvage biodiesel vice copper mug lumbersexual cred plaid.
-          Skateboard pitchfork listicle fashion axe. Chillwave viral butcher
-          vegan wolf.
-        </p>
+    <div class="container">
+      <h1>Welcome to the site</h1>
+      <div class="row">
+        <div class="col-md-4">
+          <nav class="navigation">
+            <li>Dashboard</li>
+            <li>Reports</li>
+            <li>Tickets</li>
+          </nav>
+        </div>
+        <div class="col-md-8">
+          <custom-dashboard
+            user="admin"
+            name="Nirmal Jain"
+            avatar="https://randomuser.me/api/portraits/men/4.jpg"
+          >
+            <span slot="user">USER:</span>
+            <span slot="email">jainnirmal1992@gmail.com</span>
+            <span slot="phone">423424234 32423</span>
+          </custom-dashboard>
+        </div>
       </div>
-    </dialog-modal>
-
-    <button id="launch-dialog">Launch dialog</button>
+    </div>
   </body>
   <script src="./bundle.js"></script>
 </html>
